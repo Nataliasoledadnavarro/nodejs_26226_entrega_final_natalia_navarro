@@ -1,61 +1,70 @@
-const products = [
-  {
-    id: 1,
-    name: "producto 1",
-    price: 100,
-    categoryId: 1,
-  },
-  {
-    id: 2,
-    name: "producto 2",
-    price: 200,
-    categoryId: 2,
-  },
-  {
-    id: 3,
-    name: "producto 3",
-    price: 300,
-    categoryId: 1,
-  },
-];
-let nextProductId = products.length + 1;
+import {readFile, writeFile} from "fs/promises";
+const dataURL = new URL("../../data/catalog.json", import.meta.url);
+const data = await readFile(dataURL, "utf-8");
+const products = JSON.parse(data).products;
 
-export const findAll = (categoryId) => {
+const saveProducts = async (updatedProducts) => {
+  const catalog = JSON.parse(await readFile(dataURL, "utf-8"));
+  catalog.products = updatedProducts;
+
+  await writeFile(dataURL, `${JSON.stringify(catalog, null, 2)}\n`, "utf-8");
+  products.splice(0, products.length, ...updatedProducts);
+};
+
+const generateProductId = () => {
+  if (products.length === 0) {
+    return 1;
+  }
+
+  return Math.max(...products.map((product) => product.id)) + 1;
+};
+
+export const findAll = async (categoryId) => {
   if (!categoryId) {
     return products;
   }
   return products.filter((p) => p.categoryId === parseInt(categoryId));
 };
 
-export const findById = (id) => {
+export const findById = async (id) => {
   return products.find((p) => p.id === parseInt(id));
 };
 
-export const createProduct = (product) => {
+export const createProduct = async (product) => {
   const newProduct = {
-    id: nextProductId++,
+    id: generateProductId(),
     ...product,
   };
-  products.push(newProduct);
+
+  await saveProducts([...products, newProduct]);
   return newProduct;
 };
 
-export const updateProduct = (id, productData) => {
-  const product = findById(id);
+export const updateProduct = async (id, productData) => {
+  const product = await findById(id);
   if (!product) {
     return null;
   }
 
-  Object.assign(product, productData);
-  return product;
+  const updatedProduct = {...product, ...productData};
+  const updatedProducts = products.map((currentProduct) =>
+    currentProduct.id === product.id ? updatedProduct : currentProduct
+  );
+
+  await saveProducts(updatedProducts);
+  return updatedProduct;
 };
 
-export const deleteProduct = (id) => {
+export const deleteProduct = async (id) => {
   const index = products.findIndex((product) => product.id === parseInt(id));
   if (index === -1) {
     return null;
   }
 
-  return products.splice(index, 1)[0];
+  const [deletedProduct] = products.slice(index, index + 1);
+  const updatedProducts = products.filter((product) => product.id !== deletedProduct.id);
+
+  await saveProducts(updatedProducts);
+  return deletedProduct;
 };
 

@@ -1,0 +1,36 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "tecnología"
+    },
+    {
+      "id": 2,
+      "name": "hogar"
+    },
+    {
+      "id": 3,
+      "name": "alimentos"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "producto 1",
+      "price": 100,
+      "categoryId": 1
+    },
+    {
+      "id": 2,
+      "name": "producto 2",
+      "price": 200,
+      "categoryId": 2
+    },
+    {
+      "id": 3,
+      "name": "producto 3",
+      "price": 300,
+      "categoryId": 1
+    }
+  ]
+}

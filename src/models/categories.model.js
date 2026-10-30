@@ -1,35 +1,60 @@
-const categories = [
-  {id: 1, name: "tecnología"},
-  {id: 2, name: "hogar"},
-  {id: 3, name: "alimentos"},
-];
-let nextCategoryId = categories.length + 1;
+import {readFile, writeFile} from "fs/promises";
 
-export const findAll = () => categories;
+const dataURL = new URL("../../data/catalog.json", import.meta.url);
+const data = await readFile(dataURL, "utf-8");
+const categories = JSON.parse(data).categories;
 
-export const findById = (id) => categories.find((category) => category.id === id);
+const saveCategories = async (updatedCategories) => {
+  const catalog = JSON.parse(await readFile(dataURL, "utf-8"));
+  catalog.categories = updatedCategories;
 
-export const createCategory = ({name}) => {
-  const newCategory = {id: nextCategoryId++, name};
-  categories.push(newCategory);
+  await writeFile(dataURL, `${JSON.stringify(catalog, null, 2)}\n`, "utf-8");
+  categories.splice(0, categories.length, ...updatedCategories);
+};
+
+const generateCategoryId = () => {
+  if (categories.length === 0) {
+    return 1;
+  }
+
+  return Math.max(...categories.map((category) => category.id)) + 1;
+};
+
+export const findAll = async () => categories;
+
+export const findById = async (id) => categories.find((category) => category.id === id);
+
+export const createCategory = async ({name}) => {
+  const newCategory = {id: generateCategoryId(), name};
+
+  await saveCategories([...categories, newCategory]);
   return newCategory;
 };
 
-export const updateCategory = (id, {name}) => {
-  const category = findById(id);
+export const updateCategory = async (id, {name}) => {
+  const category = await findById(id);
   if (!category) {
     return null;
   }
 
-  category.name = name;
-  return category;
+  const updatedCategory = {...category, name};
+  const updatedCategories = categories.map((currentCategory) =>
+    currentCategory.id === category.id ? updatedCategory : currentCategory
+  );
+
+  await saveCategories(updatedCategories);
+  return updatedCategory;
 };
 
-export const deleteCategory = (id) => {
+export const deleteCategory = async (id) => {
   const index = categories.findIndex((category) => category.id === id);
   if (index === -1) {
     return null;
   }
 
-  return categories.splice(index, 1)[0];
+  const [deletedCategory] = categories.slice(index, index + 1);
+  const updatedCategories = categories.filter((category) => category.id !== deletedCategory.id);
+
+  await saveCategories(updatedCategories);
+  return deletedCategory;
 };

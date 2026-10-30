@@ -1,18 +1,18 @@
 import * as productModel from "../models/products.model.js";
 import * as categoryModel from "../models/categories.model.js";
 
-export const getProducts = (req, res) => {
+export const getProducts = async (req, res) => {
   const categoryId = req.query.categoryId;
-  const filteredProducts = productModel.findAll(categoryId);
+  const filteredProducts = await productModel.findAll(categoryId);
   res.json(filteredProducts);
 };
 
-export const getProductById = (req, res) => {
+export const getProductById = async (req, res) => {
   const productId = parseInt(req.params.id);
   if (isNaN(productId)) {
     return res.status(400).json({error: "Invalid product ID"});
   }
-  const product = productModel.findById(productId);
+  const product = await productModel.findById(productId);
 
   if (!product) {
     return res.status(404).json({error: "Producto no encontrado"});
@@ -20,7 +20,7 @@ export const getProductById = (req, res) => {
   res.json(product);
 };
 
-export const createProduct = (req, res) => {
+export const createProduct = async (req, res) => {
   const {name, price, categoryId} = req.body ?? {};
   if (!name || price === undefined || categoryId === undefined) {
     return res.status(400).json({error: "name, price y categoryId son obligatorios"});
@@ -31,11 +31,11 @@ export const createProduct = (req, res) => {
   if (!Number.isFinite(numericPrice) || numericPrice < 0 || !Number.isInteger(numericCategoryId)) {
     return res.status(400).json({error: "price debe ser un número válido y categoryId un entero"});
   }
-  if (!categoryModel.findById(numericCategoryId)) {
+  if (!await categoryModel.findById(numericCategoryId)) {
     return res.status(400).json({error: "La categoría indicada no existe"});
   }
 
-  const newProduct = productModel.createProduct({
+  const newProduct = await productModel.createProduct({
     name,
     price: numericPrice,
     categoryId: numericCategoryId,
@@ -43,13 +43,13 @@ export const createProduct = (req, res) => {
   res.status(201).json(newProduct);
 };
 
-export const updateProduct = (req, res) => {
+export const updateProduct = async (req, res) => {
   const productId = parseInt(req.params.id);
   if (isNaN(productId)) {
     return res.status(400).json({error: "ID de producto inválido"});
   }
 
-  if (!productModel.findById(productId)) {
+  if (!await productModel.findById(productId)) {
     return res.status(404).json({error: "Producto no encontrado"});
   }
 
@@ -63,11 +63,11 @@ export const updateProduct = (req, res) => {
   if (!Number.isFinite(numericPrice) || numericPrice < 0 || !Number.isInteger(numericCategoryId)) {
     return res.status(400).json({error: "price debe ser un número válido y categoryId un entero"});
   }
-  if (!categoryModel.findById(numericCategoryId)) {
+  if (!await categoryModel.findById(numericCategoryId)) {
     return res.status(400).json({error: "La categoría indicada no existe"});
   }
 
-  const updatedProduct = productModel.updateProduct(productId, {
+  const updatedProduct = await productModel.updateProduct(productId, {
     name,
     price: numericPrice,
     categoryId: numericCategoryId,
@@ -75,13 +75,13 @@ export const updateProduct = (req, res) => {
   res.json(updatedProduct);
 };
 
-export const deleteProduct = (req, res) => {
+export const deleteProduct = async (req, res) => {
   const productId = parseInt(req.params.id);
   if (isNaN(productId)) {
     return res.status(400).json({error: "ID de producto inválido"});
   }
 
-  const deletedProduct = productModel.deleteProduct(productId);
+  const deletedProduct = await productModel.deleteProduct(productId);
   if (!deletedProduct) {
     return res.status(404).json({error: "Producto no encontrado"});
   }

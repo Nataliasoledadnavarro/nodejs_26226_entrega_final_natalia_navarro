@@ -1,70 +1,64 @@
-import {readFile, writeFile} from "fs/promises";
-const dataURL = new URL("../../data/catalog.json", import.meta.url);
-const data = await readFile(dataURL, "utf-8");
-const products = JSON.parse(data).products;
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import {db} from "../config/firebase.js";
 
-const saveProducts = async (updatedProducts) => {
-  const catalog = JSON.parse(await readFile(dataURL, "utf-8"));
-  catalog.products = updatedProducts;
-
-  await writeFile(dataURL, `${JSON.stringify(catalog, null, 2)}\n`, "utf-8");
-  products.splice(0, products.length, ...updatedProducts);
-};
-
-const generateProductId = () => {
-  if (products.length === 0) {
-    return 1;
-  }
-
-  return Math.max(...products.map((product) => product.id)) + 1;
-};
+const productsCollection = collection(db, "products");
 
 export const findAll = async (categoryId) => {
-  if (!categoryId) {
-    return products;
-  }
-  return products.filter((p) => p.categoryId === parseInt(categoryId));
+  const productsQuery = categoryId
+    ? query(productsCollection, where("categoryId", "==", Number(categoryId)))
+    : productsCollection;
+  const snapshot = await getDocs(productsQuery);
+
+  return snapshot.docs.map((productDocument) => ({
+    id: productDocument.id,
+    ...productDocument.data(),
+  }));
 };
 
 export const findById = async (id) => {
-  return products.find((p) => p.id === parseInt(id));
+  const productReference = doc(productsCollection, String(id));
+  const productSnapshot = await getDoc(productReference);
+
+  if (!productSnapshot.exists()) {
+    return null;
+  }
+
+  return {id: productSnapshot.id, ...productSnapshot.data()};
 };
 
 export const createProduct = async (product) => {
-  const newProduct = {
-    id: generateProductId(),
-    ...product,
-  };
-
-  await saveProducts([...products, newProduct]);
-  return newProduct;
+  const productReference = await addDoc(productsCollection, product);
+  return {id: productReference.id, ...product};
 };
 
 export const updateProduct = async (id, productData) => {
-  const product = await findById(id);
-  if (!product) {
+  const productReference = doc(productsCollection, String(id));
+  const productSnapshot = await getDoc(productReference);
+  if (!productSnapshot.exists()) {
     return null;
   }
 
-  const updatedProduct = {...product, ...productData};
-  const updatedProducts = products.map((currentProduct) =>
-    currentProduct.id === product.id ? updatedProduct : currentProduct
-  );
-
-  await saveProducts(updatedProducts);
-  return updatedProduct;
+  await updateDoc(productReference, productData);
+  return {id: productSnapshot.id, ...productSnapshot.data(), ...productData};
 };
 
 export const deleteProduct = async (id) => {
-  const index = products.findIndex((product) => product.id === parseInt(id));
-  if (index === -1) {
+  const productReference = doc(productsCollection, String(id));
+  const productSnapshot = await getDoc(productReference);
+  if (!productSnapshot.exists()) {
     return null;
   }
 
-  const [deletedProduct] = products.slice(index, index + 1);
-  const updatedProducts = products.filter((product) => product.id !== deletedProduct.id);
-
-  await saveProducts(updatedProducts);
-  return deletedProduct;
+  await deleteDoc(productReference);
+  return {id: productSnapshot.id, ...productSnapshot.data()};
 };
-

@@ -8,9 +8,9 @@ export const getProducts = async (req, res) => {
 };
 
 export const getProductById = async (req, res) => {
-  const productId = parseInt(req.params.id);
-  if (isNaN(productId)) {
-    return res.status(400).json({error: "Invalid product ID"});
+  const productId = req.params.id;
+  if (!productId.trim()) {
+    return res.status(400).json({error: "ID de producto inválido"});
   }
   const product = await productModel.findById(productId);
 
@@ -44,8 +44,8 @@ export const createProduct = async (req, res) => {
 };
 
 export const updateProduct = async (req, res) => {
-  const productId = parseInt(req.params.id);
-  if (isNaN(productId)) {
+  const productId = req.params.id;
+  if (!productId.trim()) {
     return res.status(400).json({error: "ID de producto inválido"});
   }
 
@@ -76,8 +76,8 @@ export const updateProduct = async (req, res) => {
 };
 
 export const deleteProduct = async (req, res) => {
-  const productId = parseInt(req.params.id);
-  if (isNaN(productId)) {
+  const productId = req.params.id;
+  if (!productId.trim()) {
     return res.status(400).json({error: "ID de producto inválido"});
   }
 

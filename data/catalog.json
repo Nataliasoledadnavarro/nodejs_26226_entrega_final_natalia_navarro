@@ -1,16 +1,16 @@
 {
   "categories": [
     {
-      "id": 1,
-      "name": "tecnología"
-    },
-    {
       "id": 2,
       "name": "hogar"
     },
     {
       "id": 3,
       "name": "alimentos"
+    },
+    {
+      "id": 4,
+      "name": "librería"
     }
   ],
   "products": [

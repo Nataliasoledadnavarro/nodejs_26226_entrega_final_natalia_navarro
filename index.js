@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import productsRouter from "./src/routes/products.router.js";
 import categoriesRouter from "./src/routes/categories.router.js";
+import authRouter from "./src/routes/auth.routes.js";
 
 const app = express();
 app.use(express.json());  //bodyParser midelware
@@ -18,6 +19,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/products", productsRouter);
 app.use("/api/categories", categoriesRouter);
+app.use("/api/auth", authRouter);
 
 const PORT = 3000;
 

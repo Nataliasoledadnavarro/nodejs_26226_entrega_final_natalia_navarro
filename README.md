@@ -41,11 +41,13 @@ src/
 
 - **Rutas:** asocian métodos HTTP y URLs con funciones del controlador.
 - **Controladores:** reciben las solicitudes, validan datos básicos y preparan las respuestas.
-- **Modelos:** contienen y modifican los datos. Actualmente se guardan en arreglos en memoria; se reinician al detener el servidor.
+- **Modelos:** consultan y modifican los productos, categorías y usuarios en Firestore. El archivo `data/catalog.json` queda como datos locales de referencia y no es usado por los endpoints.
 
 ## Endpoints de categorías
 
 La base de rutas es `/api/categories`.
+
+Los IDs de categorías se mantienen numéricos para conservar la relación actual con `categoryId` en los productos. En Firestore se usan como IDs de documento (por ejemplo, `"1"`).
 
 | Método | Endpoint | Descripción | Respuesta habitual |
 | --- | --- | --- | --- |

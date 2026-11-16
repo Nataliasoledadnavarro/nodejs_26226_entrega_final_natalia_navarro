@@ -1,6 +1,10 @@
 {
   "categories": [
     {
+      "id": 1,
+      "name": "tecnología"
+    },
+    {
       "id": 2,
       "name": "hogar"
     },

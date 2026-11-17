@@ -1,62 +1,67 @@
-import * as categoryModel from "../models/categories.model.js";
+import * as categoriesService from "../services/categories.service.js";
+import {HttpError} from "../services/http-error.service.js";
 
-export const getCategories = async (req, res) => {
-  res.json(await categoryModel.findAll());
+const handleServiceError = (error, res, next) => {
+  if (error instanceof HttpError) {
+    return res.status(error.status).json({error: error.message});
+  }
+  return next(error);
 };
 
-export const getCategoryById = async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) {
+export const getCategories = async (req, res, next) => {
+  try {
+    return res.json(await categoriesService.listCategories());
+  } catch (error) {
+    return handleServiceError(error, res, next);
+  }
+};
+
+export const getCategoryById = async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
     return res.status(400).json({error: "ID de categoría inválido"});
   }
 
-  const category = await categoryModel.findById(id);
-  if (!category) {
-    return res.status(404).json({error: "Categoría no encontrada"});
+  try {
+    return res.json(await categoriesService.getCategory(id));
+  } catch (error) {
+    return handleServiceError(error, res, next);
   }
-
-  res.json(category);
 };
 
-export const createCategory = async (req, res) => {
-  const {name} = req.body ?? {};
-  if (!name) {
-    return res.status(400).json({error: "El nombre es obligatorio"});
+export const createCategory = async (req, res, next) => {
+  try {
+    const category = await categoriesService.createCategory(req.body ?? {});
+    return res.status(201).json(category);
+  } catch (error) {
+    return handleServiceError(error, res, next);
   }
-
-  const category = await categoryModel.createCategory({name});
-  res.status(201).json(category);
 };
 
-export const updateCategory = async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) {
+export const updateCategory = async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
     return res.status(400).json({error: "ID de categoría inválido"});
   }
 
-  const {name} = req.body ?? {};
-  if (!name) {
-    return res.status(400).json({error: "El nombre es obligatorio"});
+  try {
+    const category = await categoriesService.updateCategory(id, req.body ?? {});
+    return res.json(category);
+  } catch (error) {
+    return handleServiceError(error, res, next);
   }
-
-  const category = await categoryModel.updateCategory(id, {name});
-  if (!category) {
-    return res.status(404).json({error: "Categoría no encontrada"});
-  }
-
-  res.json(category);
 };
 
-export const deleteCategory = async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) {
+export const deleteCategory = async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
     return res.status(400).json({error: "ID de categoría inválido"});
   }
 
-  const category = await categoryModel.deleteCategory(id);
-  if (!category) {
-    return res.status(404).json({error: "Categoría no encontrada"});
+  try {
+    await categoriesService.deleteCategory(id);
+    return res.status(204).send();
+  } catch (error) {
+    return handleServiceError(error, res, next);
   }
-
-  res.status(204).send();
 };

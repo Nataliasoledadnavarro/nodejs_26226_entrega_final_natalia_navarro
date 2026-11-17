@@ -41,7 +41,9 @@ src/
 
 - **Rutas:** asocian métodos HTTP y URLs con funciones del controlador.
 - **Controladores:** reciben las solicitudes, validan datos básicos y preparan las respuestas.
-- **Modelos:** consultan y modifican los productos, categorías y usuarios en Firestore. El archivo `data/catalog.json` contiene datos locales de referencia, pero los endpoints no lo usan.
+- **Modelos:** consultan y modifican productos, categorías y usuarios directamente en Firestore.
+
+El catálogo se almacena en Firestore. No se requiere un archivo de datos local para iniciar ni usar los endpoints.
 
 ## Endpoints de categorías
 

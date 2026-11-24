@@ -15,6 +15,8 @@ npm install
 npm start
 ```
 
+Antes de iniciar la API, creá `.env` a partir de `.env.example` y completá las variables de Firebase y `JWT_SECRET` con los valores de tu entorno. No subas `.env` a GitHub. Si cambiás variables con el servidor en ejecución, reinicialo.
+
 Para desarrollo, también podés iniciar el servidor con reinicio automático al guardar cambios:
 
 ```bash
@@ -74,7 +76,7 @@ Los IDs de categorías se mantienen numéricos para conservar la relación actua
 
 ### Crear una categoría
 
-Solicitud `POST /api/categories`, con `Content-Type: application/json`:
+Solicitud `POST /api/categories`, con `Content-Type: application/json` y Bearer token válido:
 
 ```json
 {
@@ -82,7 +84,7 @@ Solicitud `POST /api/categories`, con `Content-Type: application/json`:
 }
 ```
 
-Respuesta de ejemplo (`201 Created`):
+Respuesta de ejemplo (`201 Created`; el ID depende de las categorías existentes):
 
 ```json
 {
@@ -107,16 +109,16 @@ La actualización requiere el campo `name`.
 
 La base de rutas es `/api/products`.
 
-| Método | Endpoint | Descripción | Respuesta habitual |
-| --- | --- | --- | --- |
-| GET | `/api/products` | Lista los productos | `200` |
-| GET | `/api/products?categoryId=1` | Lista productos de una categoría | `200` |
-| GET | `/api/products/:id` | Obtiene un producto por ID | `200`, `400` o `404` |
-| POST | `/api/products/create` | Crea un producto | `201` o `400` |
-| PUT | `/api/products/:id` | Reemplaza los datos de un producto | `200`, `400` o `404` |
-| DELETE | `/api/products/:id` | Elimina un producto | `204`, `400` o `404` |
+| Método | Endpoint | Descripción | Autenticación | Respuesta habitual |
+| --- | --- | --- | --- | --- |
+| GET | `/api/products` | Lista los productos | No requerida | `200` |
+| GET | `/api/products?categoryId=1` | Lista productos de una categoría | No requerida | `200` |
+| GET | `/api/products/:id` | Obtiene un producto por ID de documento Firestore | No requerida | `200`, `400` o `404` |
+| POST | `/api/products/create` | Crea un producto | Bearer token | `201`, `400` o `401` |
+| PUT | `/api/products/:id` | Reemplaza los datos de un producto | Bearer token | `200`, `400`, `401` o `404` |
+| DELETE | `/api/products/:id` | Elimina un producto | Bearer token | `204`, `401` o `404` |
 
-Para crear un producto, enviá `POST /api/products/create` con este cuerpo JSON:
+Para crear un producto, enviá `POST /api/products/create` con Bearer token y este cuerpo JSON:
 
 ```json
 {
@@ -126,9 +128,9 @@ Para crear un producto, enviá `POST /api/products/create` con este cuerpo JSON:
 }
 ```
 
-Para actualizar un producto, enviá `PUT /api/products/1` con los mismos campos (`name`, `price` y `categoryId`). La categoría indicada debe existir. El precio debe ser un número igual o mayor que cero.
+Para actualizar un producto, enviá `PUT /api/products/ID_DOCUMENTO_FIRESTORE` con Bearer token y los mismos campos (`name`, `price` y `categoryId`). El ID del producto es el ID de documento de Firestore (una cadena), no necesariamente un número. La categoría indicada debe existir. El precio debe ser un número igual o mayor que cero.
 
-La API también permite eliminar un producto con `DELETE /api/products/1`. Si la eliminación es correcta, responde `204 No Content` sin cuerpo.
+La API también permite eliminar un producto con `DELETE /api/products/ID_DOCUMENTO_FIRESTORE` y Bearer token. Si la eliminación es correcta, responde `204 No Content` sin cuerpo.
 
 ## Endpoints de autenticación
 
@@ -136,8 +138,8 @@ La base de rutas es `/api/auth`.
 
 | Método | Endpoint | Descripción | Respuesta habitual |
 | --- | --- | --- | --- |
-| POST | `/api/auth/register` | Registra un nuevo usuario | `201` o `400` |
-| POST | `/api/auth/login` | Inicia sesión | `200` o `401` |
+| POST | `/api/auth/register` | Registra un usuario | `201`, `400` o `409` |
+| POST | `/api/auth/login` | Inicia sesión y entrega un JWT | `200`, `400` o `401` |
 
 ### Registro de usuario
 
@@ -158,7 +160,7 @@ Respuesta de ejemplo (`201 Created`):
 {
   "message": "Usuario creado correctamente",
   "user": {
-    "id": "123",
+    "id": "ID_DOCUMENTO_FIRESTORE",
     "email": "nuevo_usuario@example.com"
   }
 }
@@ -183,7 +185,7 @@ Respuesta de ejemplo (`200 OK`):
   "tokenType": "Bearer",
   "expiresIn": "1h",
   "user": {
-    "id": "123",
+    "id": "ID_DOCUMENTO_FIRESTORE",
     "email": "nuevo_usuario@example.com"
   }
 }
@@ -205,6 +207,8 @@ Las operaciones de creación, actualización y eliminación de productos y categ
 - `409 Conflict`: el email ya se encuentra registrado.
 - `500 Internal Server Error`: falla interna o de configuración.
 - `204 No Content`: se eliminó una categoría o producto correctamente; no incluye cuerpo.
+
+El registro debe usar un email que todavía no esté cargado en la colección `users`. El token vence en una hora; para obtener otro, volvé a iniciar sesión.
 
 ## Nota sobre almacenamiento y seguridad
 

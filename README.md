@@ -2,6 +2,10 @@
 
 API de aprendizaje construida con **Node.js** y **Express** para administrar productos y categorías. El proyecto organiza el código en rutas, controladores y modelos para separar responsabilidades.
 
+## Demo desplegada
+
+La API está desplegada en Vercel: [https://nodejs-26226-entrega-final-natalia.vercel.app](https://nodejs-26226-entrega-final-natalia.vercel.app). Para probar los endpoints, agregá las rutas documentadas abajo a esta URL base.
+
 ## Requisitos
 
 - Node.js y npm instalados.
